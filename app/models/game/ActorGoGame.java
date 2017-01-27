@@ -41,7 +41,7 @@ public class ActorGoGame extends UntypedActor {
 		players[0] = new GoPlayerRef(player1, this);
 		
 		playerRefs[1] = player2;
-		players[1] = new GoPlayerRef(player2, this);	
+		players[1] = new GoPlayerRef(player2, this);
 		
 		game = new DefaultGoGame(players[0], players[1], boardSize, ruleset);
 	}

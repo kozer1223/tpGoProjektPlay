@@ -1,7 +1,34 @@
-@(message: String)
 
-@main("Welcome to Play") {
-
-    @play20.welcome(message, style = "Java")
-
+@main(null) {
+    
+    @if(flash.containsKey("error")) {
+        
+        <div class="alert-message error">
+            <p>
+                <strong>Oops!</strong> @flash.get("error")
+            </p>
+        </div>
+        
+    }
+        
+    <div class="alert-message block-message info">
+        <p>
+            <strong>Websocket Play!</strong> 
+            To start, choose ax username, board size and opponent.
+		</p>
+	</div>
+	<div class="alert-message block-message info">
+		<p>
+			<form action="@routes.Application.chatRoom()">
+				<input id="username" name="username" class="input-small" type="text" placeholder="Username">
+				<input id="boardSize" name="boardSize" class="input-small" type="number" value="9">
+				<select id="opponent" name="opponent">
+					<option value="player">Player</option>
+					<option value="bot">Bot</option>
+				</select>
+				<button class="btn" type="submit">Sign in</button>
+			</form>
+        </p>
+    </div>
+    
 }

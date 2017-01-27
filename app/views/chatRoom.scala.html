@@ -1,0 +1,43 @@
+@(username: String, boardSize: Integer, opponent: String)
+
+@main(username) {
+    
+    <div class="page-header">
+        <h1>WebSocket Logger</h1>
+    </div>
+	
+	<div id="test" class="alert-message block-message info">
+        <p>
+            <strong>Hello! @username @boardSize @opponent</strong> <span></span>
+        </p>
+    </div>
+    
+    <div id="onError" class="alert-message error">
+        <p>
+            <strong>Oops!</strong> <span></span>
+        </p>
+    </div>
+	
+	<div id="board" class="row" style="width:@(boardSize*20)px">
+		<table class="board">
+		@for( a <- 1 to boardSize){
+			<tr>
+			@for( b <- 1 to boardSize){
+				<td>a</td>
+			}
+			</tr>
+		}
+		</table>
+	</div>
+    
+    <div id="onChat" class="row">
+    	<input id="nr" placeholder="Give a position for a stone"></input>    	
+
+    	<div class="span10" id="main">
+     		<div id="messages"></div>          
+   		</div>        
+    </div>
+    
+    <script type="text/javascript" charset="utf-8" src="@routes.Application.chatRoomJs(username, boardSize, opponent)"></script>
+    
+}
