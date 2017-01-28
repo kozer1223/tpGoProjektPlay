@@ -2547,5 +2547,18 @@ img.white_dead {
 img.white_dead_locked {
 	width: 48px;
 	height: 48px;
-	background: url(../images/go_icons.png) -144px -48px;
+	background: url(../images/go_icons.png) -144px -96px;
+}
+
+.wrap {
+   width:400px;
+   /*margin:0 auto;*/
+}
+.left_col {
+   float:left;
+   width:200px;
+}
+.right_col {
+   float:right;
+   width:200px;
 }

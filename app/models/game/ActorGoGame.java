@@ -65,14 +65,13 @@ public class ActorGoGame extends UntypedActor {
 		// TODO Auto-generated method stub
 		ActorRef sender = getSender();
 		GoPlayerRef player = getPlayerRefFromActorRef(sender);
-		System.out.println("Got message " + message.getClass().toString() + " from " + sender.toString());
+
 		if (player == null){
 			
 		} else {
 			// message from player
 			if (message instanceof Move){
 				Move move = (Move) message;
-				System.out.println("got move");
 				try {
 					game.makeMove(player, move.getX(), move.getY());
 					sender.tell(new Accepted(), getSelf());

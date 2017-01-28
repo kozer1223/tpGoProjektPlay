@@ -46,9 +46,7 @@ public class ActorGoPlayer extends UntypedActor {
 			@Override
 			public void invoke(JsonNode event) {
 				try {
-					System.out.println("!!!");
 					String type = event.get("type").asText();
-					System.out.println(type);
 					if (type.equals("move")){
 						int x = event.get("x").asInt();
 						int y = event.get("y").asInt();
@@ -66,12 +64,9 @@ public class ActorGoPlayer extends UntypedActor {
 							while(it.hasNext()){
 								Entry<String, JsonNode> entry = it.next();
 								String value = entry.getValue().asText();
-								System.out.println(value);
 								GoGroupType g = (value.equals("A") ? GoGroupType.ALIVE : GoGroupType.DEAD);
 								changes.put(Integer.parseInt(entry.getKey()), g);
 							}
-							System.out.println("aaa");
-							System.out.println(event.get("changes_map").asText());
 							game.tell(new LabelsMap(changes), getSelf());
 						}
 					} else if (type.equals("rematch")){
@@ -127,8 +122,10 @@ public class ActorGoPlayer extends UntypedActor {
 			boardData = new int[boardSize][boardSize];
 			
             ObjectNode event = Json.newObject();
-            event.put("message", "Joined game " + color); 
+            event.put("message", "Joined game " + color);
+            event.put("join", true);
             event.put("phase", 0);
+            event.put("color", color);
             
             out.write(event);
 		} else if (message instanceof Begin) {
@@ -138,7 +135,9 @@ public class ActorGoPlayer extends UntypedActor {
 			
             ObjectNode event = Json.newObject();
             event.put("message", "Game start");
+            event.put("begin", true);
             event.put("phase", 0);
+            event.put("color", color);
             
             out.write(event);
 		} else if (message instanceof Board) {
@@ -169,8 +168,6 @@ public class ActorGoPlayer extends UntypedActor {
 			LabelsMap labelsMap = (LabelsMap) message;
 			Map<Integer, GoGroupType> map = labelsMap.getLabelsMap();
 			
-
-            //event.put("lables_map", new JSONObject(labelsMap));
             ObjectNode event = Json.newObject();
             
             ObjectNode innerNode = Json.newObject();
@@ -179,20 +176,20 @@ public class ActorGoPlayer extends UntypedActor {
             	innerNode.put(key.toString(), value);
             }
             event.put("labels_map", innerNode);
-            
-            System.out.println(event);
-            
+
             out.write(event);
 		} else if (message instanceof Turn) {
 			Turn turn = (Turn) message;
 
             ObjectNode event = Json.newObject();
             event.put("message", "Your turn"); 
+            event.put("turn", true); 
             
             out.write(event);
 		} else if (message instanceof Accepted) {
             ObjectNode event = Json.newObject();
             event.put("message", "Move accepted"); 
+            event.put("accepted", true); 
             
             out.write(event);
 		} else if (message instanceof Message) {
@@ -200,6 +197,7 @@ public class ActorGoPlayer extends UntypedActor {
 			
             ObjectNode event = Json.newObject();
             event.put("message", errMessage.getMessage()); 
+            event.put("err_message", errMessage.getMessage()); 
             
             out.write(event);
 		} else if (message instanceof GamePhase) {
@@ -214,7 +212,7 @@ public class ActorGoPlayer extends UntypedActor {
 		} else if (message instanceof Score) {
 			Score score = (Score) message;
 			this.gamePhase = 2;
-			//game.tell(new RematchRequest(), getSelf());
+
             ObjectNode event = Json.newObject();
             event.put("message", "Black: " + score.getScore1() + " White: " + score.getScore2()); 
             event.put("score", "Black: " + score.getScore1() + " White: " + score.getScore2()); 
@@ -225,11 +223,13 @@ public class ActorGoPlayer extends UntypedActor {
 			CapturedStones capturedStones = (CapturedStones) message;
             ObjectNode event = Json.newObject();
             event.put("message", "Black: " + capturedStones.getCapturedStones1() + " White: " + capturedStones.getCapturedStones2()); 
+            event.put("captured", capturedStones.getCapturedStones1() + " " + capturedStones.getCapturedStones2());
             
             out.write(event);
 		} else if (message instanceof RematchDenial){
             ObjectNode event = Json.newObject();
             event.put("message", "Rematch denied"); 
+            event.put("denied", true);
             
             out.write(event);
 		} else {

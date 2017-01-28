@@ -67,10 +67,7 @@ public class GoPlayerRef implements GoPlayer {
 	}
 
 	@Override
-	public void rematchAccepted() {
-		// TODO Auto-generated method stub
-		
-	}
+	public void rematchAccepted() {}
 
 	@Override
 	public void rematchDenied() {

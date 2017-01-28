@@ -54,23 +54,12 @@ public class Application extends Controller {
             
             // Called when the Websocket Handshake is done.
             public void onReady(WebSocket.In<JsonNode> in, WebSocket.Out<JsonNode> out){
-                
-            	/*Table.notifyAll(new Info("I've got a WebSocket", username));
-            	
-                // Join the chat room.
-                try {                	
-                	Table.join(username, in, out);
-                	
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }*/
             	if (opponent.equals("player")){
             		WaitingLobby.joinDefaultLobby(username, boardSize, in, out);
             	} else if (opponent.equals("bot")){
             		WaitingLobby.playWithBot(username, boardSize, in, out);
         			
             	}
-            	
             }
         };
     }
