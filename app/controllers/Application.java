@@ -1,10 +1,15 @@
 package controllers;
 
 import play.Logger;
+import play.libs.Akka;
 import play.mvc.*;
 
-import com.fasterxml.jackson.databind.JsonNode; 
+import com.fasterxml.jackson.databind.JsonNode;
 
+import akka.actor.ActorRef;
+import akka.actor.Props;
+import akka.actor.UntypedActor;
+import akka.actor.UntypedActorFactory;
 import views.html.*;
 import models.*;
 
@@ -44,7 +49,7 @@ public class Application extends Controller {
     /**
      * Handle the chat websocket.
      */
-    public static WebSocket<JsonNode> chat(final String username, final int boardSize, String opponent) {
+    public static WebSocket<JsonNode> chat(final String username, final int boardSize, final String opponent) {
         return new WebSocket<JsonNode>() {
             
             // Called when the Websocket Handshake is done.
@@ -59,8 +64,13 @@ public class Application extends Controller {
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }*/
+            	if (opponent.equals("player")){
+            		WaitingLobby.joinDefaultLobby(username, boardSize, in, out);
+            	} else if (opponent.equals("bot")){
+            		WaitingLobby.playWithBot(username, boardSize, in, out);
+        			
+            	}
             	
-            	WaitingLobby.joinDefaultLobby(username, boardSize, in, out);
             }
         };
     }

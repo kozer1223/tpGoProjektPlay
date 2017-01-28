@@ -1,20 +1,14 @@
 package models;
 
+import java.util.ArrayList;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
-import models.game.msg.Accepted;
-import models.game.msg.Begin;
-import models.game.msg.Board;
-import models.game.msg.GamePhase;
-import models.game.msg.JoinGame;
-import models.game.msg.Message;
-import models.game.msg.RematchRequest;
-import models.game.msg.Score;
-import models.game.msg.Turn;
-import models.msg.Quit;
+import models.game.msg.*;
+import models.msg.*;
 import play.Logger;
 import play.libs.F.Callback;
 import play.libs.F.Callback0;
@@ -44,6 +38,16 @@ public class ActorGoPlayer extends UntypedActor {
 			@Override
 			public void invoke(JsonNode event) {
 				try {
+					System.out.println("!!!");
+					String type = event.get("type").asText();
+					System.out.println(type);
+					if (type.equals("move")){
+						int x = event.get("x").asInt();
+						int y = event.get("y").asInt();
+						if (game != null){
+							game.tell(new Move(x,y), getSelf());
+						}
+					}
 					//int nr = event.get("nr").asInt();
 					//getSelf().tell(new Move(nr, name), getSelf());
 				} catch (Exception e) {
@@ -59,6 +63,16 @@ public class ActorGoPlayer extends UntypedActor {
 				lobby.tell(new Quit(), getSelf());
 			}
 		});
+	}
+	
+	public String stringifyBoard(int[][] board){
+		StringBuilder string = new StringBuilder();
+		for(int i=0; i<board.length; i++){
+			for(int j=0; j<board[i].length; j++){
+				string.append(board[i][j] + " ");
+			}
+		}
+		return string.toString();
 	}
 
 	@Override
@@ -89,6 +103,11 @@ public class ActorGoPlayer extends UntypedActor {
 		} else if (message instanceof Board) {
 			Board board = (Board) message;
 			boardData = board.getBoard();
+			
+            ObjectNode event = Json.newObject();
+            event.put("board", stringifyBoard(boardData));
+            
+            out.write(event);
 		} else if (message instanceof Turn) {
 			Turn turn = (Turn) message;
 

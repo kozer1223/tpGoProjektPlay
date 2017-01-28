@@ -12,6 +12,7 @@ import akka.actor.UntypedActor;
 import akka.actor.UntypedActorFactory;
 import models.game.ActorGoGame;
 import models.game.DefaultGoRuleset;
+import models.game.GoBotActor;
 import models.msg.JoinLobby;
 import models.msg.Quit;
 import play.libs.Akka;
@@ -64,6 +65,18 @@ public class WaitingLobby extends UntypedActor {
 			}
 		}
 		
+	}
+
+	public static void playWithBot(final String username, final int boardSize, final play.mvc.WebSocket.In<JsonNode> in,
+			final play.mvc.WebSocket.Out<JsonNode> out) {
+		final ActorRef player = Akka.system().actorOf(new Props(new UntypedActorFactory() {
+			public UntypedActor create() {
+				return new ActorGoPlayer(username, in, out, ActorRef.noSender());
+			}
+		}));
+		final ActorRef bot = Akka.system().actorOf(new Props(GoBotActor.class));
+		ActorRef game = Akka.system()
+				.actorOf(Props.create(ActorGoGame.class, player, bot, boardSize, DefaultGoRuleset.getDefaultRuleset()));
 	}
 	
 

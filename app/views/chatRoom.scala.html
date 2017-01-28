@@ -18,12 +18,12 @@
         </p>
     </div>
 	
-	<div id="board" class="row" style="width:@(boardSize*20)px">
+	<div id="board" class="row" style="width:@(boardSize*24)px">
 		<table class="board">
 		@for( a <- 1 to boardSize){
 			<tr>
 			@for( b <- 1 to boardSize){
-				<td>a</td>
+				<td><img id="@(b)_@a" class="empty" src="@routes.Assets.at("images/empty.png")"/></td>
 			}
 			</tr>
 		}
