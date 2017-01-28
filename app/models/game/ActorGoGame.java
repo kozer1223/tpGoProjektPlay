@@ -83,16 +83,27 @@ public class ActorGoGame extends UntypedActor {
 				}
 			} else if (message instanceof Pass){
 				try {
-					game.passTurn(player);
-					sender.tell(new Accepted(), getSelf());
+					if (game.isStonePlacingPhase()){
+						game.passTurn(player);
+						sender.tell(new Accepted(), getSelf());
+					} else {
+						game.applyGroupTypeChanges(player, new HashMap<Integer, GoGroupType>());
+						sender.tell(new Accepted(), getSelf());
+					}
 				} catch (IllegalArgumentException e){
 					//ignore
 				}
-			} else if (message instanceof LabelsMap){
-				LabelsMap groupTypeChanges = (LabelsMap) message;
-				game.applyGroupTypeChanges(player, groupTypeChanges.getLabelsMap());
+			} else if (message instanceof LabelsMap) {
+				try {
+					LabelsMap groupTypeChanges = (LabelsMap) message;
+					game.applyGroupTypeChanges(player, groupTypeChanges.getLabelsMap());
+				} catch (IllegalArgumentException e) {
+					// ignore
+				}
 			} else if (message instanceof RematchRequest){
 				game.requestRematch(player);
+			} else if (message instanceof RematchDenial){
+				game.denyRematch(player);
 			} else {
 				unhandled(message);
 			}

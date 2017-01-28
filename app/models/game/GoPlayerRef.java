@@ -21,26 +21,26 @@ public class GoPlayerRef implements GoPlayer {
 
 	@Override
 	public void setGame(GoGame game) {
-		actor.tell(new JoinGame(this.game.getSelf(), game.getBoard().getSize(), 0), this.game.getSelf());
+		int color = 0;
+		if (game.getPlayer2().equals((this))){
+			color = 1;
+		}
+		actor.tell(new JoinGame(this.game.getSelf(), game.getBoard().getSize(), color), this.game.getSelf());
 	}
 
 	@Override
 	public void notifyAboutGameBegin() {
-		// TODO Auto-generated method stub
 		actor.tell(new Begin(), this.game.getSelf());
 	}
 
 	@Override
 	public void notifyAboutTurn(GoMoveType opponentsMove) {
-		// TODO Auto-generated method stub
 		actor.tell(new Turn(opponentsMove), game.getSelf());
 		
 	}
 
 	@Override
 	public void updateBoard() {
-		MatrixUtil.printMatrix(game.getGame().getBoard().getBoardData());
-		
 		if (game != null) {
 			if (game.getGame().isStonePlacingPhase()) {
 				actor.tell(new Board(MatrixUtil.copyMatrix(game.getGame().getBoard().getBoardData())), game.getSelf());

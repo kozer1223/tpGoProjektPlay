@@ -50,11 +50,11 @@ public class DefaultGoGame implements GoGame {
 		this.boardSize = boardSize;
 		board = new DefaultGoBoard(boardSize);
 		
-		players = new GoPlayerRef[2];
+		players = new GoPlayer[2];
 		players[0] = player1;
-		player1.setGame(this);
-
 		players[1] = player2;
+		
+		player1.setGame(this);
 		player2.setGame(this);
 
 		restartGame();

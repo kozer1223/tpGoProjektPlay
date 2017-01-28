@@ -1,12 +1,19 @@
 package models;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeCreator;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
+import models.game.GoGroupType;
 import models.game.msg.*;
 import models.msg.*;
 import play.Logger;
@@ -23,6 +30,7 @@ public class ActorGoPlayer extends UntypedActor {
 	private int boardSize;
 	private int color;
 	private int[][] boardData;
+	private int[][] labeledBoardData;
 	private int gamePhase;
 
 	protected WebSocket.In<JsonNode> in;
@@ -47,9 +55,32 @@ public class ActorGoPlayer extends UntypedActor {
 						if (game != null){
 							game.tell(new Move(x,y), getSelf());
 						}
+					} else if (type.equals("pass")){
+						if (game != null){
+							game.tell(new Pass(), getSelf());
+						}
+					} else if (type.equals("apply")){
+						if (game != null){
+							Map<Integer, GoGroupType> changes = new HashMap<Integer, GoGroupType>();
+							Iterator<Entry<String, JsonNode>> it = event.get("changes_map").fields();
+							while(it.hasNext()){
+								Entry<String, JsonNode> entry = it.next();
+								String value = entry.getValue().asText();
+								System.out.println(value);
+								GoGroupType g = (value.equals("A") ? GoGroupType.ALIVE : GoGroupType.DEAD);
+								changes.put(Integer.parseInt(entry.getKey()), g);
+							}
+							System.out.println("aaa");
+							System.out.println(event.get("changes_map").asText());
+							game.tell(new LabelsMap(changes), getSelf());
+						}
+					} else if (type.equals("rematch")){
+						game.tell(new RematchRequest(), getSelf());
+					} else if (type.equals("deny_rematch")){
+						game.tell(new RematchDenial(), getSelf());
 					}
-					//int nr = event.get("nr").asInt();
-					//getSelf().tell(new Move(nr, name), getSelf());
+
+					
 				} catch (Exception e) {
 					Logger.error("invokeError");
 				}
@@ -74,6 +105,14 @@ public class ActorGoPlayer extends UntypedActor {
 		}
 		return string.toString();
 	}
+	
+	public String stringifyList(List<?> list){
+		StringBuilder string = new StringBuilder();
+		for(Object e : list){
+			string.append(e.toString() + " ");
+		}
+		return string.toString();
+	}
 
 	@Override
 	public void onReceive(Object message) throws Exception {
@@ -88,7 +127,8 @@ public class ActorGoPlayer extends UntypedActor {
 			boardData = new int[boardSize][boardSize];
 			
             ObjectNode event = Json.newObject();
-            event.put("message", "Joined game"); 
+            event.put("message", "Joined game " + color); 
+            event.put("phase", 0);
             
             out.write(event);
 		} else if (message instanceof Begin) {
@@ -97,7 +137,8 @@ public class ActorGoPlayer extends UntypedActor {
 			boardData = new int[boardSize][boardSize];
 			
             ObjectNode event = Json.newObject();
-            event.put("message", "Game start"); 
+            event.put("message", "Game start");
+            event.put("phase", 0);
             
             out.write(event);
 		} else if (message instanceof Board) {
@@ -108,6 +149,40 @@ public class ActorGoPlayer extends UntypedActor {
             event.put("board", stringifyBoard(boardData));
             
             out.write(event);
+		} else if (message instanceof LabeledBoard) {
+			LabeledBoard labeledBoard = (LabeledBoard) message;
+			labeledBoardData = labeledBoard.getLabeledBoard();
+			
+            ObjectNode event = Json.newObject();
+            event.put("labeled_board", stringifyBoard(labeledBoardData));
+            
+            out.write(event);
+		} else if (message instanceof LockedGroups) {
+			LockedGroups lockedGroups = (LockedGroups) message;
+			List<Integer> groupsList = lockedGroups.getLockedGroups();
+			
+            ObjectNode event = Json.newObject();
+            event.put("locked_groups", stringifyList(groupsList));
+            
+            out.write(event);
+		} else if (message instanceof LabelsMap) {
+			LabelsMap labelsMap = (LabelsMap) message;
+			Map<Integer, GoGroupType> map = labelsMap.getLabelsMap();
+			
+
+            //event.put("lables_map", new JSONObject(labelsMap));
+            ObjectNode event = Json.newObject();
+            
+            ObjectNode innerNode = Json.newObject();
+            for (Integer key : map.keySet()){
+            	String value = (map.get(key).equals(GoGroupType.ALIVE)) ? "A" : "D";
+            	innerNode.put(key.toString(), value);
+            }
+            event.put("labels_map", innerNode);
+            
+            System.out.println(event);
+            
+            out.write(event);
 		} else if (message instanceof Turn) {
 			Turn turn = (Turn) message;
 
@@ -116,16 +191,47 @@ public class ActorGoPlayer extends UntypedActor {
             
             out.write(event);
 		} else if (message instanceof Accepted) {
-			// cool
+            ObjectNode event = Json.newObject();
+            event.put("message", "Move accepted"); 
+            
+            out.write(event);
 		} else if (message instanceof Message) {
-
+			Message errMessage = (Message) message;
+			
+            ObjectNode event = Json.newObject();
+            event.put("message", errMessage.getMessage()); 
+            
+            out.write(event);
 		} else if (message instanceof GamePhase) {
 			GamePhase phaseChange = (GamePhase) message;
 			this.gamePhase = phaseChange.getPhase();
+			
+            ObjectNode event = Json.newObject();
+            event.put("message", "Phase " + gamePhase); 
+            event.put("phase", gamePhase);
+            
+            out.write(event);
 		} else if (message instanceof Score) {
-			// cool
+			Score score = (Score) message;
 			this.gamePhase = 2;
-			game.tell(new RematchRequest(), getSelf());
+			//game.tell(new RematchRequest(), getSelf());
+            ObjectNode event = Json.newObject();
+            event.put("message", "Black: " + score.getScore1() + " White: " + score.getScore2()); 
+            event.put("score", "Black: " + score.getScore1() + " White: " + score.getScore2()); 
+            
+            out.write(event);
+			
+		} else if (message instanceof CapturedStones){
+			CapturedStones capturedStones = (CapturedStones) message;
+            ObjectNode event = Json.newObject();
+            event.put("message", "Black: " + capturedStones.getCapturedStones1() + " White: " + capturedStones.getCapturedStones2()); 
+            
+            out.write(event);
+		} else if (message instanceof RematchDenial){
+            ObjectNode event = Json.newObject();
+            event.put("message", "Rematch denied"); 
+            
+            out.write(event);
 		} else {
 			unhandled(message);
 		}
