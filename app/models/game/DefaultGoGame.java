@@ -440,7 +440,6 @@ public class DefaultGoGame implements GoGame {
 
 			setGamePhase(2);
 
-			System.out.println("Notifying player " + (1 - playerNo));
 			players[1 - playerNo].notifyAboutGameEnd(score[1 - playerNo], score[playerNo]);
 
 			currentPlayer = null;

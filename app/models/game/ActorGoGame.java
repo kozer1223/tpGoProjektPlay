@@ -12,6 +12,7 @@ import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
 import models.game.msg.*;
 import models.game.rules.GoRuleset;
+import models.msg.Quit;
 import models.util.IntPair;
 
 /**
@@ -102,6 +103,9 @@ public class ActorGoGame extends UntypedActor {
 			} else if (message instanceof RematchRequest){
 				game.requestRematch(player);
 			} else if (message instanceof RematchDenial){
+				game.denyRematch(player);
+			} else if (message instanceof Quit){
+				game.leaveGame(player);
 				game.denyRematch(player);
 			} else {
 				unhandled(message);

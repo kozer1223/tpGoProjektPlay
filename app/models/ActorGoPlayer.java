@@ -1,5 +1,6 @@
 package models;
 
+import java.nio.channels.ClosedChannelException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -35,6 +36,8 @@ public class ActorGoPlayer extends UntypedActor {
 
 	protected WebSocket.In<JsonNode> in;
 	protected WebSocket.Out<JsonNode> out;
+	
+	private boolean closed = false;
 
 	public ActorGoPlayer(String name, WebSocket.In<JsonNode> in, WebSocket.Out<JsonNode> out, ActorRef lobbyRef) {
 		this.name = name;
@@ -73,6 +76,7 @@ public class ActorGoPlayer extends UntypedActor {
 						game.tell(new RematchRequest(), getSelf());
 					} else if (type.equals("deny_rematch")){
 						game.tell(new RematchDenial(), getSelf());
+						closed = true;
 					}
 
 					
@@ -87,6 +91,10 @@ public class ActorGoPlayer extends UntypedActor {
 			@Override
 			public void invoke() {
 				lobby.tell(new Quit(), getSelf());
+				if (game != null){
+					game.tell(new Quit(), getSelf());
+				}
+				closed = true;
 			}
 		});
 	}
@@ -108,6 +116,12 @@ public class ActorGoPlayer extends UntypedActor {
 		}
 		return string.toString();
 	}
+	
+	private void send(ObjectNode event){
+		if (!closed){
+			out.write(event);
+		}
+	}
 
 	@Override
 	public void onReceive(Object message) throws Exception {
@@ -127,7 +141,7 @@ public class ActorGoPlayer extends UntypedActor {
             event.put("phase", 0);
             event.put("color", color);
             
-            out.write(event);
+            send(event);
 		} else if (message instanceof Begin) {
 			gamePhase = 0;
 
@@ -139,7 +153,7 @@ public class ActorGoPlayer extends UntypedActor {
             event.put("phase", 0);
             event.put("color", color);
             
-            out.write(event);
+            send(event);
 		} else if (message instanceof Board) {
 			Board board = (Board) message;
 			boardData = board.getBoard();
@@ -147,7 +161,7 @@ public class ActorGoPlayer extends UntypedActor {
             ObjectNode event = Json.newObject();
             event.put("board", stringifyBoard(boardData));
             
-            out.write(event);
+            send(event);
 		} else if (message instanceof LabeledBoard) {
 			LabeledBoard labeledBoard = (LabeledBoard) message;
 			labeledBoardData = labeledBoard.getLabeledBoard();
@@ -155,7 +169,7 @@ public class ActorGoPlayer extends UntypedActor {
             ObjectNode event = Json.newObject();
             event.put("labeled_board", stringifyBoard(labeledBoardData));
             
-            out.write(event);
+            send(event);
 		} else if (message instanceof LockedGroups) {
 			LockedGroups lockedGroups = (LockedGroups) message;
 			List<Integer> groupsList = lockedGroups.getLockedGroups();
@@ -163,7 +177,7 @@ public class ActorGoPlayer extends UntypedActor {
             ObjectNode event = Json.newObject();
             event.put("locked_groups", stringifyList(groupsList));
             
-            out.write(event);
+            send(event);
 		} else if (message instanceof LabelsMap) {
 			LabelsMap labelsMap = (LabelsMap) message;
 			Map<Integer, GoGroupType> map = labelsMap.getLabelsMap();
@@ -177,7 +191,7 @@ public class ActorGoPlayer extends UntypedActor {
             }
             event.put("labels_map", innerNode);
 
-            out.write(event);
+            send(event);
 		} else if (message instanceof Turn) {
 			Turn turn = (Turn) message;
 
@@ -185,13 +199,13 @@ public class ActorGoPlayer extends UntypedActor {
             event.put("message", "Your turn"); 
             event.put("turn", true); 
             
-            out.write(event);
+            send(event);
 		} else if (message instanceof Accepted) {
             ObjectNode event = Json.newObject();
             event.put("message", "Move accepted"); 
             event.put("accepted", true); 
             
-            out.write(event);
+            send(event);
 		} else if (message instanceof Message) {
 			Message errMessage = (Message) message;
 			
@@ -199,7 +213,7 @@ public class ActorGoPlayer extends UntypedActor {
             event.put("message", errMessage.getMessage()); 
             event.put("err_message", errMessage.getMessage()); 
             
-            out.write(event);
+            send(event);
 		} else if (message instanceof GamePhase) {
 			GamePhase phaseChange = (GamePhase) message;
 			this.gamePhase = phaseChange.getPhase();
@@ -208,7 +222,7 @@ public class ActorGoPlayer extends UntypedActor {
             event.put("message", "Phase " + gamePhase); 
             event.put("phase", gamePhase);
             
-            out.write(event);
+            send(event);
 		} else if (message instanceof Score) {
 			Score score = (Score) message;
 			this.gamePhase = 2;
@@ -217,7 +231,7 @@ public class ActorGoPlayer extends UntypedActor {
             event.put("message", "Black: " + score.getScore1() + " White: " + score.getScore2()); 
             event.put("score", "Black: " + score.getScore1() + " White: " + score.getScore2()); 
             
-            out.write(event);
+            send(event);
 			
 		} else if (message instanceof CapturedStones){
 			CapturedStones capturedStones = (CapturedStones) message;
@@ -225,13 +239,13 @@ public class ActorGoPlayer extends UntypedActor {
             event.put("message", "Black: " + capturedStones.getCapturedStones1() + " White: " + capturedStones.getCapturedStones2()); 
             event.put("captured", capturedStones.getCapturedStones1() + " " + capturedStones.getCapturedStones2());
             
-            out.write(event);
+            send(event);
 		} else if (message instanceof RematchDenial){
             ObjectNode event = Json.newObject();
             event.put("message", "Rematch denied"); 
             event.put("denied", true);
             
-            out.write(event);
+            send(event);
 		} else {
 			unhandled(message);
 		}
