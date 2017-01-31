@@ -30,7 +30,7 @@
 		@for( a <- 1 to boardSize){
 			<tr>
 			@for( b <- 1 to boardSize){
-				<td><img id="@(b)_@a" class="empty" src="@routes.Assets.at("images/empty.png")"/></td>
+				<td id="b@(b)_@a"><img id="@(b)_@a" class="empty" src="@routes.Assets.at("images/empty.png")"/></td>
 			}
 			</tr>
 		}

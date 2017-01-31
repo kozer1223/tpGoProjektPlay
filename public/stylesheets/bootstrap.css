@@ -2477,9 +2477,9 @@ button.btn::-moz-focus-inner, input[type=submit].btn::-moz-focus-inner {
 .board td {
 	width: 48px;
 	height: 48px;
-	padding: 2px;
+	padding: 1px;
 	overflow: hidden;
-	border: 1px solid black;
+	border: 0px solid black;
 	background-color: #ce924e;
 	line-height: 0;
 }
@@ -2548,6 +2548,60 @@ img.white_dead_locked {
 	width: 48px;
 	height: 48px;
 	background: url(../images/go_icons.png) -144px -96px;
+}
+
+td.board_ul {
+	width: 50px;
+	height: 50px;
+	background: url(../images/board.png) 0 0;
+}
+
+td.board_u {
+	width: 50px;
+	height: 50px;
+	background: url(../images/board.png) -50px 0;
+}
+
+td.board_ur {
+	width: 50px;
+	height: 50px;
+	background: url(../images/board.png) -100px 0;
+}
+
+td.board_l {
+	width: 50px;
+	height: 50px;
+	background: url(../images/board.png) 0 -50px;
+}
+
+td.board_ {
+	width: 50px;
+	height: 50px;
+	background: url(../images/board.png) -50px -50px;
+}
+
+td.board_r {
+	width: 50px;
+	height: 50px;
+	background: url(../images/board.png) -100px -50px;
+}
+
+td.board_dl {
+	width: 50px;
+	height: 50px;
+	background: url(../images/board.png) 0 -100px;
+}
+
+td.board_d {
+	width: 50px;
+	height: 50px;
+	background: url(../images/board.png) -50px -100px;
+}
+
+td.board_dr {
+	width: 50px;
+	height: 50px;
+	background: url(../images/board.png) -100px -100px;
 }
 
 .wrap {

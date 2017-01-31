@@ -23,6 +23,25 @@ $(function() {
 	var playersTurn;
 	var color = 0;
 	
+	var drawGrid = function() {
+		for (var i = 1; i <= @boardSize; i++){
+			for (var j = 1; j <= @boardSize; j++){
+				var className = "board_"
+				if (j == 1){
+					className = className.concat("u");
+				} else if (j == @boardSize){
+					className = className.concat("d");
+				}
+				if (i == 1){
+					className = className.concat("l");
+				} else if (i == @boardSize){
+					className = className.concat("r");
+				}
+				$("#b"+i+"_"+j).attr('class', className);
+			}
+		}
+	}
+	
 	var redrawBoard = function() {
 		for (var i = 1; i <= @boardSize; i++){
 			for (var j = 1; j <= @boardSize; j++){
@@ -250,7 +269,7 @@ $(function() {
 	$("#pass").attr('disabled', true);
 	$("#apply").attr('disabled', true);
 
-
+	drawGrid();
     chatSocket.onmessage = receiveEvent
 
 })
